@@ -3,8 +3,13 @@
   "displayName": "filepath",
   "description": "Automatically inserts a comment at the beginning of your files displaying the relative file path. This extension enhances navigation and context awareness by allowing you to quickly identify the location of the file within your project structure. It supports multiple programming languages and uses the appropriate comment syntax based on the file type.",
   "version": "0.0.1",
+  "publisher": "bllfoad",
   "engines": {
     "vscode": "^1.94.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bllfoad/filepath"
   },
   "categories": [
     "Other"
