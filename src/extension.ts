@@ -1,9 +1,11 @@
+// src/extension.ts
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import ignore from 'ignore';
 
 let gitignore: ReturnType<typeof ignore> | null = null;
+let userExcludeList: string[] = [];
 
 export function activate(context: vscode.ExtensionContext) {
   console.log('File Path Header extension activated!');
@@ -11,6 +13,10 @@ export function activate(context: vscode.ExtensionContext) {
   // Load .gitignore rules
   vscode.workspace.onDidChangeWorkspaceFolders(loadGitignore);
   loadGitignore();
+
+  // Load user exclude list from settings
+  vscode.workspace.onDidChangeConfiguration(loadUserSettings);
+  loadUserSettings();
 
   // Track active editor changes
   vscode.window.onDidChangeActiveTextEditor((editor) => {
@@ -58,6 +64,13 @@ function loadGitignore() {
     gitignore = null;
     console.log('No .gitignore found.');
   }
+}
+
+// Load user-defined exclude list from settings.json
+function loadUserSettings() {
+  const config = vscode.workspace.getConfiguration('filePathHeader');
+  userExcludeList = config.get<string[]>('exclude') || [];
+  console.log('Loaded user exclude list:', userExcludeList);
 }
 
 // Try to insert a comment if the document is not ignored
@@ -134,13 +147,11 @@ function shouldIgnore(document: vscode.TextDocument): boolean {
 
   console.log(`Checking if ignored: ${relativePath}`);
 
-  if (!gitignore) {
-    return false; // No .gitignore loaded, allow all files
-  }
+  const gitignoreIgnored = gitignore?.ignores(relativePath) ?? false;
+  const explicitlyExcluded = userExcludeList.includes(relativePath);
 
-  const isIgnored = gitignore.ignores(relativePath); // Check if file is ignored
-  console.log(`Ignored: ${relativePath} -> ${isIgnored}`);
-  return isIgnored;
+  console.log(`Ignored: ${relativePath} -> gitignore: ${gitignoreIgnored}, user: ${explicitlyExcluded}`);
+  return gitignoreIgnored || explicitlyExcluded;
 }
 
 
